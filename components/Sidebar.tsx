@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import sidebarStyles from '../styles/Sidebar.module.css';
+import sidebarStyles from '../styles/sidebar.module.css';
 import { supabase } from '../utils/supabaseClient';
 
 interface SidebarProps {
