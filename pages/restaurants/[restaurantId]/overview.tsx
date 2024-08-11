@@ -1,71 +1,74 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import Layout from '../../../components/Layout';
 import styles from '../../../styles/Overview.module.css';
 import { supabase } from '../../../utils/supabaseClient';
+import { useRouter } from 'next/router';
 
 const Overview: React.FC = () => {
-  const router = useRouter();
-  const { restaurantId } = router.query; // Get the restaurantId from the URL
   const [pendingOrders, setPendingOrders] = useState(0);
   const [recentBilling, setRecentBilling] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<string[]>([]);
 
+  const router = useRouter();
+  const { restaurantId } = router.query; // Get restaurantId from the URL
+
   useEffect(() => {
-    if (restaurantId) {
-      const fetchPendingOrders = async () => {
-        const { data, error } = await supabase
-          .from('inventory_requests')
-          .select('*')
-          .eq('restaurant_id', restaurantId) // Filter by restaurantId
-          .eq('status', 'pending');
+    const fetchPendingOrders = async () => {
+      if (!restaurantId) return;
 
-        if (error) {
-          console.error('Error fetching pending orders:', error.message);
-        } else {
-          setPendingOrders(data.length);
-        }
-      };
+      const { data, error } = await supabase
+        .from('inventory_requests')
+        .select('*')
+        .eq('status', 'pending')
+        .eq('restaurant_id', restaurantId); // Filter by restaurant_id
+        
+      if (error) {
+        console.error('Error fetching pending orders:', error.message);
+      } else {
+        setPendingOrders(data.length);
+      }
+    };
 
-      const fetchRecentBilling = async () => {
-        const { data, error } = await supabase
-          .from('invoices')
-          .select('*')
-          .eq('restaurant_id', restaurantId) // Filter by restaurantId
-          .order('date_time', { ascending: false })
-          .limit(1)
-          .single();  // Fetch the most recent invoice
+    const fetchRecentBilling = async () => {
+      if (!restaurantId) return;
 
-        if (error) {
-          console.error('Error fetching recent billing:', error.message);
-        } else if (data) {
-          setRecentBilling(`$${data.total}`);
-        }
-      };
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('*')
+        .eq('restaurant_id', restaurantId) // Filter by restaurant_id
+        .order('date_time', { ascending: false })
+        .limit(1)
+        .single();  // Fetch the most recent invoice
 
-      const fetchNotifications = async () => {
-        const newNotifications: string[] = [];
+      if (error) {
+        console.error('Error fetching recent billing:', error.message);
+      } else if (data) {
+        setRecentBilling(`$${data.total}`);
+      }
+    };
 
-        // Fetch pending order notifications
-        if (pendingOrders > 0) {
-          newNotifications.push(`You have ${pendingOrders} pending order(s).`);
-        }
+    const fetchNotifications = async () => {
+      const newNotifications: string[] = [];
 
-        // Fetch recent billing notifications
-        if (recentBilling) {
-          newNotifications.push(`Your most recent billing amount is ${recentBilling}.`);
-        }
+      // Fetch pending order notifications
+      if (pendingOrders > 0) {
+        newNotifications.push(`You have ${pendingOrders} pending order(s).`);
+      }
 
-        // Other notifications can be added here
-        newNotifications.push('New feature: Dark mode is now available!');
+      // Fetch recent billing notifications
+      if (recentBilling) {
+        newNotifications.push(`Your most recent billing amount is ${recentBilling}.`);
+      }
 
-        setNotifications(newNotifications);
-      };
+      // Other notifications can be added here
+      newNotifications.push('New feature: Dark mode is now available!');
 
-      fetchPendingOrders();
-      fetchRecentBilling();
-      fetchNotifications(); // Call notifications after fetching orders and billing
-    }
+      setNotifications(newNotifications);
+    };
+
+    fetchPendingOrders();
+    fetchRecentBilling();
+    fetchNotifications(); // Call notifications after fetching orders and billing
   }, [restaurantId, pendingOrders, recentBilling]); // Dependencies to refetch notifications
 
   return (

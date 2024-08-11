@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import sidebarStyles from '../styles/Sidebar.module.css';
 import { supabase } from '../utils/supabaseClient';
 
@@ -9,29 +10,38 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
+  const router = useRouter();
+  const { restaurantId } = router.query; // Extract restaurantId from URL
+
   const [restaurantName, setRestaurantName] = useState<string | null>(null);
   const [location, setLocation] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!restaurantId) {
+      console.log('No restaurantId found'); // This might happen on the first render
+      return;
+    }
+
     const fetchRestaurantData = async () => {
-      const restaurantId = 1; // You can modify this to be dynamic if necessary
+      console.log('Fetching restaurant data for restaurantId:', restaurantId);
 
       const { data, error } = await supabase
         .from('restaurants')
         .select('name, location')
-        .eq('id', restaurantId)
+        .eq('id', restaurantId)  // Ensure this matches the restaurantId
         .single();
 
       if (error) {
         console.error('Error fetching restaurant data:', error.message);
       } else {
+        console.log('Fetched restaurant data:', data);
         setRestaurantName(data?.name || 'Unknown Restaurant');
         setLocation(data?.location || 'Unknown Location');
       }
     };
 
     fetchRestaurantData();
-  }, []);
+  }, [restaurantId]); // Re-run the effect when restaurantId changes
 
   return (
     <div>
@@ -48,37 +58,37 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         </div>
         <ul className={sidebarStyles.menu}>
           <li>
-            <Link href="/restaurants/${restaurantId}/overview" className={sidebarStyles.menuItem}>
+            <Link href={`/restaurants/${restaurantId}/overview`} className={sidebarStyles.menuItem}>
               <i className="fas fa-home"></i>
               {isOpen && <span className={sidebarStyles.menuText}>Overview</span>}
             </Link>
           </li>
           <li>
-            <Link href="/restaurants/${restaurantId}/request-order" className={sidebarStyles.menuItem}>
+            <Link href={`/restaurants/${restaurantId}/request-order`} className={sidebarStyles.menuItem}>
               <i className="fas fa-shopping-cart"></i>
               {isOpen && <span className={sidebarStyles.menuText}>Request Order</span>}
             </Link>
           </li>
           <li>
-            <Link href="/restaurants/${restaurantId}/orders" className={sidebarStyles.menuItem}>
+            <Link href={`/restaurants/${restaurantId}/orders`} className={sidebarStyles.menuItem}>
               <i className="fas fa-list"></i>
               {isOpen && <span className={sidebarStyles.menuText}>Orders</span>}
             </Link>
           </li>
           <li>
-            <Link href="/restaurants/${restaurantId}/billing" className={sidebarStyles.menuItem}>
+            <Link href={`/restaurants/${restaurantId}/billing`} className={sidebarStyles.menuItem}>
               <i className="fas fa-file-invoice-dollar"></i>
               {isOpen && <span className={sidebarStyles.menuText}>Billing</span>}
             </Link>
           </li>
           <li>
-            <Link href="/restaurants/${restaurantId}/recommendations" className={sidebarStyles.menuItem}>
+            <Link href={`/restaurants/${restaurantId}/recommendations`} className={sidebarStyles.menuItem}>
               <i className="fas fa-lightbulb"></i>
               {isOpen && <span className={sidebarStyles.menuText}>Recommendations</span>}
             </Link>
           </li>
           <li>
-            <Link href="/restaurants/${restaurantId}/settings" className={sidebarStyles.menuItem}>
+            <Link href={`/restaurants/${restaurantId}/settings`} className={sidebarStyles.menuItem}>
               <i className="fas fa-cog"></i>
               {isOpen && <span className={sidebarStyles.menuText}>Settings</span>}
             </Link>

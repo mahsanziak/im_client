@@ -1,7 +1,7 @@
 // pages/billing.tsx
 import React, { useState } from 'react';
 import Layout from '../../../components/Layout';
-import styles from '../../../styles/styles/Billing.module.css';
+import styles from '../../../styles/Billing.module.css';
 
 const Billing: React.FC = () => {
   // Hardcoded data for orders

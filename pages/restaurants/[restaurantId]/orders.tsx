@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../../../components/Layout';
 import styles from '../../../styles/Orders.module.css';
 import { supabase } from '../../../utils/supabaseClient';
+import { useRouter } from 'next/router';
 
 const Orders: React.FC = () => {
   const [pendingOrders, setPendingOrders] = useState<any[]>([]);
@@ -10,22 +11,33 @@ const Orders: React.FC = () => {
   const [employeeId, setEmployeeId] = useState('');
   const [activeTab, setActiveTab] = useState('pending');
 
+  const router = useRouter();
+  const { restaurantId } = router.query;
+
   useEffect(() => {
     const fetchOrders = async () => {
+      if (!restaurantId) return;
+
+      // Fetch pending and accepted orders that are not yet confirmed for the specific restaurant
       const { data: pendingData, error: pendingError } = await supabase
         .from('inventory_requests')
         .select('*, items(name)')
-        .eq('status', 'pending');
+        .or('status.eq.pending,status.eq.accepted')
+        .eq('pending_status', 'not_confirmed')
+        .eq('restaurant_id', restaurantId);
 
+      // Fetch confirmed orders for past orders for the specific restaurant
       const { data: pastData, error: pastError } = await supabase
         .from('inventory_requests')
         .select('*, items(name)')
-        .eq('status', 'confirmed');
+        .eq('pending_status', 'confirmed')
+        .eq('restaurant_id', restaurantId);
 
       const { data: flaggedData, error: flaggedError } = await supabase
         .from('inventory_requests')
         .select('*, items(name)')
-        .eq('flagged', true);
+        .eq('flagged', true)
+        .eq('restaurant_id', restaurantId);
 
       if (pendingError || pastError || flaggedError) {
         console.error('Error fetching orders:', pendingError || pastError || flaggedError);
@@ -37,17 +49,17 @@ const Orders: React.FC = () => {
     };
 
     fetchOrders();
-  }, []);
+  }, [restaurantId]);
 
   const handleConfirmOrder = async (orderId: string) => {
     const confirmedOrder = pendingOrders.find(order => order.id === orderId);
     if (confirmedOrder) {
       await supabase
         .from('inventory_requests')
-        .update({ status: 'confirmed' })
+        .update({ pending_status: 'confirmed' })
         .eq('id', orderId);
 
-      setPastOrders([...pastOrders, { ...confirmedOrder, status: 'confirmed' }]);
+      setPastOrders([...pastOrders, { ...confirmedOrder, pending_status: 'confirmed' }]);
       setPendingOrders(pendingOrders.filter(order => order.id !== orderId));
       setEmployeeId('');
     }
@@ -151,8 +163,8 @@ const Orders: React.FC = () => {
                 pendingOrders.map(order => (
                   <div key={order.id} className={styles.orderCard}>
                     <div className={styles.orderHeader}>
-                      <span>{order.items?.name || 'Unknown Item'} Order</span> {/* Handle possible undefined */}
-                      <span>Status: {order.status}</span>
+                      <span>{order.items?.name || 'Unknown Item'} Order</span>
+                      <span>Status: {order.status === 'accepted' ? 'Accepted' : 'Pending'}</span>
                       <i
                         className={`fas fa-flag ${styles.flagIcon}`}
                         onClick={() => handleFlagOrder(order.id)}
@@ -160,7 +172,7 @@ const Orders: React.FC = () => {
                       ></i>
                     </div>
                     <div className={styles.orderDetails}>
-                      <p>Item: {order.items?.name || 'Unknown Item'}</p> {/* Handle possible undefined */}
+                      <p>Item: {order.items?.name || 'Unknown Item'}</p>
                       <p>Quantity: {order.quantity} {order.unit}</p>
 
                       <label htmlFor={`employeeId-${order.id}`} className={styles.label}>
@@ -217,7 +229,7 @@ const Orders: React.FC = () => {
                 pastOrders.map(order => (
                   <div key={order.id} className={styles.orderCard}>
                     <div className={styles.orderHeader}>
-                      <span>{order.items?.name || 'Unknown Item'} Order</span> {/* Handle possible undefined */}
+                      <span>{order.items?.name || 'Unknown Item'} Order</span>
                       <span>Status: {order.status}</span>
                       <i
                         className={`fas fa-flag ${styles.flagIcon}`}
@@ -226,7 +238,7 @@ const Orders: React.FC = () => {
                       ></i>
                     </div>
                     <div className={styles.orderDetails}>
-                      <p>Item: {order.items?.name || 'Unknown Item'}</p> {/* Handle possible undefined */}
+                      <p>Item: {order.items?.name || 'Unknown Item'}</p>
                       <p>Quantity: {order.quantity} {order.unit}</p>
 
                       {order.flagged && (
@@ -265,11 +277,11 @@ const Orders: React.FC = () => {
                 reportedOrders.map(order => (
                   <div key={order.id} className={styles.orderCard}>
                     <div className={styles.orderHeader}>
-                      <span>{order.items?.name || 'Unknown Item'} Order</span> {/* Handle possible undefined */}
+                      <span>{order.items?.name || 'Unknown Item'} Order</span>
                       <span>Status: {order.status}</span>
                     </div>
                     <div className={styles.orderDetails}>
-                      <p>Item: {order.items?.name || 'Unknown Item'}</p> {/* Handle possible undefined */}
+                      <p>Item: {order.items?.name || 'Unknown Item'}</p>
                       <p>Quantity: {order.quantity} {order.unit}</p>
                       <p>Description: {order.note}</p>
                     </div>

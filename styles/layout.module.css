@@ -1,15 +1,17 @@
 /* styles/Layout.module.css */
 .layoutContainer {
   display: flex;
-  height: 100vh;
+  min-height: 100vh; /* Changed from height to min-height to allow content to grow */
   width: 100%;
-  overflow: hidden;
+  overflow: auto; /* Changed from hidden to auto to allow scrolling */
 }
 
 .mainContent {
   flex-grow: 1;
   padding: 2rem;
   transition: margin-left 0.3s ease, width 0.3s ease;
+  overflow-y: auto; /* Allow the main content to be scrollable */
+  max-height: 100vh; /* Ensure the main content doesn’t exceed the viewport height */
 }
 
 .contentShift {

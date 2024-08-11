@@ -1,7 +1,7 @@
 // pages/settings.tsx
 import React, { useState } from 'react';
 import Layout from '../../../components/Layout';
-import styles from '../../../styles/styles/Settings.module.css';
+import styles from '../../../styles/Settings.module.css';
 
 const Settings: React.FC = () => {
   // Example state for form fields
