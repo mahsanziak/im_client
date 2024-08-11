@@ -1,0 +1,146 @@
+/* styles/RequestOrder.module.css */
+.header {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .header {
+    font-size: 1.5rem;
+    text-align: left;
+    padding-left: 1rem;
+  }
+}
+
+.description {
+  margin-bottom: 2rem;
+  color: #4a5568;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .description {
+    text-align: left;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+.form {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem;
+  background-color: #f7fafc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 767px) {
+  .form {
+    padding: 1rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    margin-top: 20px; /* Add space below toggle button */
+  }
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.required {
+  color: #e53e3e;
+}
+
+.select,
+.input,
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.select:focus,
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #3182ce;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.submitButton {
+  display: inline-block;
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #3182ce;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submitButton:hover {
+  background-color: #2b6cb0;
+}
+
+.error {
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* Orders List */
+.ordersHeader {
+  margin-top: 2rem;
+  font-size: 1.5rem;
+  color: #2d3748;
+  text-align: center;
+}
+
+.ordersList {
+  max-width: 100%;
+  margin: 1rem auto;
+  padding: 0;
+  list-style: none;
+}
+
+.orderItem {
+  background-color: #edf2f7;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  font-size: 1rem;
+}
+
+.orderItem div {
+  margin-bottom: 0.5rem;
+}
+
+.orderItem strong {
+  color: #2d3748;
+}

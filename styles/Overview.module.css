@@ -1,0 +1,82 @@
+/* styles/Overview.module.css */
+.header {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #2d3748;
+}
+
+@media (max-width: 767px) {
+  .header {
+    font-size: 1.5rem;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2x2 grid layout */
+  gap: 1.5rem;
+}
+
+@media (max-width: 767px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.card {
+  background-color: #f7fafc;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+@media (max-width: 767px) {
+  .card {
+    padding: 1rem;
+  }
+}
+
+.cardHeader {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #4a5568;
+}
+
+.cardContent {
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+  color: #2d3748;
+}
+
+.highlight {
+  font-weight: bold;
+  color: #3182ce;
+}
+
+.link {
+  font-size: 1rem;
+  color: #3182ce;
+  text-decoration: none;
+  margin-top: auto;
+  transition: color 0.2s;
+}
+
+.link:hover {
+  color: #2b6cb0;
+}
+
+.notificationList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.notificationItem {
+  font-size: 1rem;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
