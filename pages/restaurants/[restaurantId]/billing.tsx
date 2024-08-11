@@ -44,31 +44,34 @@ const Billing: React.FC = () => {
 
       data?.forEach((order) => {
         const month = new Date(order.created_at).toLocaleString('default', { month: 'long', year: 'numeric' });
-        const totalItemCost = parseFloat(order.items.price) * order.quantity;
+
+        const totalItemCost = order.items.reduce((acc: number, item: any) => {
+          return acc + parseFloat(item.price) * order.quantity;
+        }, 0);
 
         if (!groupedOrders[month]) {
           groupedOrders[month] = {
             id: order.id,
             date: month,
             totalAmount: totalItemCost.toFixed(2),
-            items: [
-              {
-                name: order.items.name,
-                quantity: order.quantity,
-                price: `$${totalItemCost.toFixed(2)}`,
-              },
-            ],
+            items: order.items.map((item: any) => ({
+              name: item.name,
+              quantity: order.quantity,
+              price: `$${(parseFloat(item.price) * order.quantity).toFixed(2)}`,
+            })),
             status: order.status,
           };
         } else {
           groupedOrders[month].totalAmount = (
             parseFloat(groupedOrders[month].totalAmount) + totalItemCost
           ).toFixed(2);
-          groupedOrders[month].items.push({
-            name: order.items.name,
-            quantity: order.quantity,
-            price: `$${totalItemCost.toFixed(2)}`,
-          });
+          groupedOrders[month].items.push(
+            ...order.items.map((item: any) => ({
+              name: item.name,
+              quantity: order.quantity,
+              price: `$${(parseFloat(item.price) * order.quantity).toFixed(2)}`,
+            }))
+          );
         }
       });
 
