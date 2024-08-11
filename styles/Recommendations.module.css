@@ -1,0 +1,60 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 80vh;
+    text-align: center;
+    background-color: #f7fafc;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .header {
+    font-size: 2.5rem;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+  }
+  
+  .subHeader {
+    font-size: 1.75rem;
+    color: #4a5568;
+    margin-bottom: 1rem;
+  }
+  
+  .description {
+    font-size: 1.125rem;
+    color: #4a5568;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    line-height: 1.6;
+  }
+  
+  .iconContainer {
+    margin-top: 2rem;
+  }
+  
+  .icon {
+    font-size: 3rem;
+    color: #3182ce;
+  }
+  
+  @media (max-width: 767px) {
+    .header {
+      font-size: 2rem;
+    }
+  
+    .subHeader {
+      font-size: 1.5rem;
+    }
+  
+    .description {
+      font-size: 1rem;
+    }
+  
+    .icon {
+      font-size: 2.5rem;
+    }
+  }
+  

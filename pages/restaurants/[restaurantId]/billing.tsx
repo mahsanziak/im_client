@@ -1,51 +1,88 @@
-// pages/billing.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../../../components/Layout';
 import styles from '../../../styles/Billing.module.css';
+import { supabase } from '../../../utils/supabaseClient';
+
+interface Order {
+  id: number;
+  date: string;
+  totalAmount: string;
+  items: {
+    name: string;
+    quantity: number;
+    price: string;
+  }[];
+  status: string;
+}
 
 const Billing: React.FC = () => {
-  // Hardcoded data for orders
-  const [orders] = useState([
-    {
-      id: 1,
-      date: '2024-08-01',
-      totalAmount: '$150.00',
-      items: [
-        { name: 'Item 1', quantity: 5, price: '$50.00' },
-        { name: 'Item 2', quantity: 10, price: '$100.00' },
-      ],
-      status: 'Paid',
-    },
-    {
-      id: 2,
-      date: '2024-08-05',
-      totalAmount: '$200.00',
-      items: [
-        { name: 'Item 3', quantity: 4, price: '$80.00' },
-        { name: 'Item 4', quantity: 8, price: '$120.00' },
-      ],
-      status: 'Pending',
-    },
-    {
-      id: 3,
-      date: '2024-08-10',
-      totalAmount: '$300.00',
-      items: [
-        { name: 'Item 5', quantity: 2, price: '$60.00' },
-        { name: 'Item 6', quantity: 12, price: '$240.00' },
-      ],
-      status: 'Paid',
-    },
-  ]);
-
+  const [orders, setOrders] = useState<Order[]>([]);
   const [activeOrder, setActiveOrder] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      const { data, error } = await supabase
+        .from('inventory_requests')
+        .select(`
+          id, 
+          created_at, 
+          quantity, 
+          status, 
+          pending_status,
+          items!inner(name, price)
+        `)
+        .eq('status', 'approved')
+        .eq('pending_status', 'approved')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching orders:', error.message);
+        return;
+      }
+
+      const groupedOrders: { [key: string]: Order } = {};
+
+      data?.forEach((order) => {
+        const month = new Date(order.created_at).toLocaleString('default', { month: 'long', year: 'numeric' });
+        const totalItemCost = parseFloat(order.items.price) * order.quantity;
+
+        if (!groupedOrders[month]) {
+          groupedOrders[month] = {
+            id: order.id,
+            date: month,
+            totalAmount: totalItemCost.toFixed(2),
+            items: [
+              {
+                name: order.items.name,
+                quantity: order.quantity,
+                price: `$${totalItemCost.toFixed(2)}`,
+              },
+            ],
+            status: order.status,
+          };
+        } else {
+          groupedOrders[month].totalAmount = (
+            parseFloat(groupedOrders[month].totalAmount) + totalItemCost
+          ).toFixed(2);
+          groupedOrders[month].items.push({
+            name: order.items.name,
+            quantity: order.quantity,
+            price: `$${totalItemCost.toFixed(2)}`,
+          });
+        }
+      });
+
+      setOrders(Object.values(groupedOrders));
+    };
+
+    fetchOrders();
+  }, []);
 
   const toggleOrderDetails = (id: number) => {
     setActiveOrder(activeOrder === id ? null : id);
   };
 
-  const printReceipt = (order: any) => {
-    // Logic to handle printing receipt
+  const printReceipt = (order: Order) => {
     console.log('Printing receipt for:', order);
     window.print();
   };
@@ -61,7 +98,7 @@ const Billing: React.FC = () => {
             <div className={styles.orderHeader} onClick={() => toggleOrderDetails(order.id)}>
               <div>
                 <span className={styles.orderDate}>{order.date}</span>
-                <span className={styles.orderTotal}>Total: {order.totalAmount}</span>
+                <span className={styles.orderTotal}>Total: ${order.totalAmount}</span>
               </div>
               <button className={styles.printButton} onClick={() => printReceipt(order)}>
                 Print Receipt

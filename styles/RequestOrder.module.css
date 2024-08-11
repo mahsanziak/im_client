@@ -1,3 +1,4 @@
+/* styles/RequestOrder.module.css */
 .header {
   font-size: 2rem;
   margin-bottom: 1rem;
@@ -35,8 +36,10 @@
   border-radius: 8px;
   box-sizing: border-box;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow-y: auto; /* Allows scrolling inside the form */
-  max-height: calc(100vh - 80px); /* Ensure the form is scrollable */
+  display: flex;
+  flex-direction: column;
+  height: auto; /* Allow the form to take the height of its content */
+  overflow: visible; /* Ensure no scrolling occurs within the form */
 }
 
 @media (max-width: 767px) {
@@ -45,7 +48,7 @@
     margin-left: 1rem;
     margin-right: 1rem;
     margin-top: 20px;
-    max-height: calc(100vh - 60px);
+    height: auto; /* Adjust for mobile view */
   }
 }
 
@@ -100,8 +103,7 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
-  position: relative;
-  bottom: 0;
+  margin-top: auto; /* Push the button to the bottom of the form */
 }
 
 .submitButton:hover {
@@ -125,7 +127,8 @@
 /* Checkbox List Styling */
 .checkboxList {
   max-height: 300px;
-  overflow-y: auto;
+  overflow-y: auto; /* Allow scrolling within the checkbox list only */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
   padding: 1rem;
   border: 1px solid #cbd5e0;
   border-radius: 8px;
