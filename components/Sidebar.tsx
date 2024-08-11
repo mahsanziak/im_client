@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import sidebarStyles from '../styles/Sidebar.module.css';
@@ -11,39 +11,42 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const router = useRouter();
-  const { restaurantId } = router.query;
+  const { restaurantId } = router.query; // Extract restaurantId from URL
 
   const [restaurantName, setRestaurantName] = useState<string | null>(null);
   const [location, setLocation] = useState<string | null>(null);
-  const isSidebarOpenRef = useRef(isOpen); // Ref to track sidebar state
 
   useEffect(() => {
     if (!restaurantId) {
+      console.log('No restaurantId found'); // This might happen on the first render
       return;
     }
 
     const fetchRestaurantData = async () => {
+      console.log('Fetching restaurant data for restaurantId:', restaurantId);
+
       const { data, error } = await supabase
         .from('restaurants')
         .select('name, location')
-        .eq('id', restaurantId)
+        .eq('id', restaurantId)  // Ensure this matches the restaurantId
         .single();
 
       if (error) {
         console.error('Error fetching restaurant data:', error.message);
       } else {
+        console.log('Fetched restaurant data:', data);
         setRestaurantName(data?.name || 'Unknown Restaurant');
         setLocation(data?.location || 'Unknown Location');
       }
     };
 
     fetchRestaurantData();
-  }, [restaurantId]);
+  }, [restaurantId]); // Re-run the effect when restaurantId changes
 
   useEffect(() => {
     const handleRouteChange = () => {
-      if (isSidebarOpenRef.current) {
-        toggleSidebar(); // Toggle sidebar to minimize it
+      if (isOpen) {
+        toggleSidebar(); // Minimize the sidebar when the route changes
       }
     };
 
@@ -52,11 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     return () => {
       router.events.off('routeChangeComplete', handleRouteChange);
     };
-  }, [router.events, toggleSidebar]);
-
-  useEffect(() => {
-    isSidebarOpenRef.current = isOpen; // Sync ref with current state
-  }, [isOpen]);
+  }, [isOpen, toggleSidebar, router.events]);
 
   return (
     <div>
