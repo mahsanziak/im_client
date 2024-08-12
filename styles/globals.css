@@ -7,3 +7,13 @@ body {
   color: #333; /* Optional: Set a default text color */
   line-height: 1.5; /* Optional: Improve readability */
 }
+/* styles/globals.css */
+
+body.dark-mode {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+.dark-mode .some-component-class {
+  /* Add any other styles for dark mode here */
+}

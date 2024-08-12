@@ -1,7 +1,8 @@
 /* styles/Billing.module.css */
+
 .pageContainer {
   display: flex;
-  flex-direction: column; /* Stack elements on mobile */
+  flex-direction: column;
 }
 
 .mainContent {
@@ -46,14 +47,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 1.5rem;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-@media (max-width: 767px) {
-  .orderCard {
-    padding: 1rem;
-  }
 }
 
 .orderHeader {
@@ -99,8 +92,7 @@
 .itemList {
   list-style: none;
   padding: 0;
-  margin: 0;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem 0;
 }
 
 .item {
@@ -110,14 +102,107 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
+.orderStatus {
+  font-weight: bold;
+  color: #38a169;
+  margin-top: 1rem;
+}
+
 @media (max-width: 767px) {
   .item {
     flex-direction: column;
   }
 }
 
-.orderStatus {
-  font-weight: bold;
-  color: #38a169;
-  margin-top: 1rem;
+/* Hidden printable invoice area */
+.printableInvoiceWrapper {
+  display: none;
+}
+
+@media print {
+  .nonPrintableContent {
+    display: none;
+  }
+
+  .printableInvoiceWrapper {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 2rem; /* Increased padding for better print appearance */
+    box-sizing: border-box;
+    page-break-after: always;
+  }
+
+  .printableInvoice {
+    margin: 0 auto;
+    width: 80%; /* Adjusted width for better centering */
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0; /* Added border for a defined look */
+    box-sizing: border-box;
+  }
+
+  .printableInvoice h1 {
+    text-align: center;
+    font-size: 2.5rem; /* Increased font size */
+    margin-bottom: 1rem;
+    font-weight: bold; /* Bold for emphasis */
+  }
+
+  .invoiceDetails,
+  .billTo {
+    margin-bottom: 2rem;
+  }
+
+  .billTo h3 {
+    margin-bottom: 0.5rem;
+    font-weight: bold; /* Bold for emphasis */
+  }
+
+  .itemTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+  }
+
+  .itemTable th,
+  .itemTable td {
+    border: 1px solid #ddd;
+    padding: 0.75rem; /* Slightly increased padding */
+    text-align: left;
+  }
+
+  .itemTable th {
+    background-color: #f7fafc; /* Lighter background for header */
+    font-weight: bold; /* Bold for table headers */
+  }
+
+  .totals {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .totals div {
+    margin-left: 1rem;
+    text-align: right;
+  }
+
+  .subtotal,
+  .tax,
+  .total {
+    margin-top: 0.5rem;
+  }
+
+  .total {
+    font-weight: bold;
+    font-size: 1.25rem; /* Increased font size for emphasis */
+    color: #2d3748; /* Darker color for emphasis */
+  }
+
+  /* Hide the sidebar during print */
+  .sidebar-container {
+    display: none;
+  }
 }
