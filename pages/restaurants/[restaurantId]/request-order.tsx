@@ -5,23 +5,23 @@ import styles from '../../../styles/RequestOrder.module.css';
 import { supabase } from '../../../utils/supabaseClient';
 
 const RequestOrder: React.FC = () => {
-  const [itemSelections, setItemSelections] = useState<{ id: number; name: string; quantity: number; unit: string; cost_per_unit: number }[]>([]);
+  const [itemSelections, setItemSelections] = useState<
+    { id: number; name: string; quantity: number; unit: string; cost_per_unit: number; notes: string }[]
+  >([]);
   const [timeline, setTimeline] = useState('');
-  const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [items, setItems] = useState<any[]>([]);
   const [subtotal, setSubtotal] = useState(0);
-  const [selectedItem, setSelectedItem] = useState<any | null>(null); // Item details when clicked
-  const [isConfirmingOrder, setIsConfirmingOrder] = useState(false); // Order confirmation state
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [isConfirmingOrder, setIsConfirmingOrder] = useState(false);
+  const [currentTime, setCurrentTime] = useState('');
   const router = useRouter();
   const { restaurantId } = router.query;
 
   useEffect(() => {
     const fetchItems = async () => {
-      const { data, error } = await supabase
-        .from('items')
-        .select('*');
+      const { data, error } = await supabase.from('items').select('*');
 
       if (error) {
         console.error('Error fetching items:', error.message);
@@ -33,6 +33,31 @@ const RequestOrder: React.FC = () => {
     fetchItems();
   }, []);
 
+  useEffect(() => {
+    const updateTime = () => {
+      const options: Intl.DateTimeFormatOptions = {
+        weekday: 'long',
+        hour: 'numeric',
+        minute: 'numeric',
+      };
+      setCurrentTime(new Date().toLocaleString('en-US', { ...options, timeZone: 'America/Edmonton' }));
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Calculate the subtotal whenever itemSelections changes
+    const newSubtotal = itemSelections.reduce(
+      (sum, selection) => sum + selection.cost_per_unit * selection.quantity,
+      0
+    );
+    setSubtotal(newSubtotal);
+  }, [itemSelections]);
+
   const handleAddToCart = (item: any, quantity: number) => {
     setItemSelections((prevSelections) => {
       const existingItem = prevSelections.find((selection) => selection.id === item.id);
@@ -41,27 +66,33 @@ const RequestOrder: React.FC = () => {
           selection.id === item.id ? { ...selection, quantity: quantity } : selection
         );
       } else {
-        return [...prevSelections, { id: item.id, name: item.name, quantity, unit: item.unit, cost_per_unit: item.cost_per_unit }];
+        return [
+          ...prevSelections,
+          { id: item.id, name: item.name, quantity, unit: item.unit, cost_per_unit: item.cost_per_unit, notes: '' },
+        ];
       }
     });
-    const newSubtotal = itemSelections.reduce(
-      (sum, selection) => sum + selection.cost_per_unit * selection.quantity,
-      0
-    );
-    setSubtotal(newSubtotal);
   };
 
   const handleQuantityChange = (itemId: number, quantity: number) => {
     setItemSelections((prevSelections) => {
-      const newSelections = prevSelections.map((selection) =>
+      return prevSelections.map((selection) =>
         selection.id === itemId ? { ...selection, quantity: Math.max(1, quantity) } : selection
       );
-      const newSubtotal = newSelections.reduce(
-        (sum, selection) => sum + selection.cost_per_unit * selection.quantity,
-        0
+    });
+  };
+
+  const handleNoteChange = (itemId: number, note: string) => {
+    setItemSelections((prevSelections) => {
+      return prevSelections.map((selection) =>
+        selection.id === itemId ? { ...selection, notes: note } : selection
       );
-      setSubtotal(newSubtotal);
-      return newSelections;
+    });
+  };
+
+  const handleRemoveFromCart = (itemId: number) => {
+    setItemSelections((prevSelections) => {
+      return prevSelections.filter((selection) => selection.id !== itemId);
     });
   };
 
@@ -82,7 +113,7 @@ const RequestOrder: React.FC = () => {
       quantity: selection.quantity,
       unit: selection.unit,
       timeline,
-      notes,
+      notes: selection.notes,
       status: 'pending',
       flagged: false,
       pending_status: 'not_confirmed',
@@ -90,35 +121,41 @@ const RequestOrder: React.FC = () => {
       updated_at: new Date().toISOString(),
     }));
 
-    const { data, error } = await supabase
-      .from('inventory_requests')
-      .insert(newOrders)
-      .select();
+    const { data, error } = await supabase.from('inventory_requests').insert(newOrders).select();
 
     if (error) {
-      console.error('Supabase insert error:', error); 
+      console.error('Supabase insert error:', error);
       setError('Failed to submit the order. Please try again.');
     } else {
       setSuccess('Your order was submitted successfully!');
       setItemSelections([]);
       setTimeline('');
-      setNotes('');
       setSubtotal(0);
-      setIsConfirmingOrder(false); // Reset confirmation state
+      setIsConfirmingOrder(false);
     }
+  };
+
+  const formatCutOffTime = (day: string, time: string) => {
+    const formattedTime = new Date(`1970-01-01T${time}`).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+    });
+    return `${day} at ${formattedTime}`;
   };
 
   return (
     <Layout>
-      <h1 className={styles.header}>Marketplace</h1>
+      <div className={styles.headerContainer}>
+        <div className={styles.currentTime}>{currentTime}</div>
+        <h1 className={styles.header}>Marketplace</h1>
+      </div>
 
-      {/* Marketplace Grid */}
       <div className={styles.gridContainer}>
         {items.map((item) => (
-          <div 
-            key={item.id} 
-            className={styles.itemCard} 
-            onClick={() => setSelectedItem(item.id)} 
+          <div
+            key={item.id}
+            className={styles.itemCard}
+            onClick={() => setSelectedItem(item.id)}
             role="button"
             tabIndex={0}
             onKeyPress={() => setSelectedItem(item.id)}
@@ -126,25 +163,29 @@ const RequestOrder: React.FC = () => {
             <img src={item.image_link} alt={item.name} className={styles.itemImage} />
             <h2 className={styles.itemName}>{item.name}</h2>
             <p className={styles.itemDescription}>{item.item_description}</p>
-            <p className={styles.itemPrice}>${item.cost_per_unit.toFixed(2)} per {item.unit}</p>
+            <p className={styles.itemPrice}>
+              ${item.cost_per_unit.toFixed(2)} per {item.unit}
+            </p>
+            <p className={styles.cutOff}>
+              Cut-Off: {formatCutOffTime(item.cut_off_day, item.cut_off_time)}
+            </p>
 
-            {/* Quantity Selector */}
             <div className={styles.quantityContainer}>
               <input
                 type="number"
                 min="1"
                 value={itemSelections.find((i) => i.id === item.id)?.quantity || 1}
-                onClick={(e) => e.stopPropagation()} // Prevent opening item details
+                onClick={(e) => e.stopPropagation()}
                 onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
                 className={styles.quantityInput}
               />
             </div>
 
-            <button 
+            <button
               onClick={(e) => {
-                e.stopPropagation(); // Prevent triggering item click
+                e.stopPropagation();
                 handleAddToCart(item, parseInt(e.target.previousSibling.firstChild.value));
-              }} 
+              }}
               className={styles.addToCartButton}
             >
               Add to Cart
@@ -153,23 +194,37 @@ const RequestOrder: React.FC = () => {
         ))}
       </div>
 
-      {/* Cart Summary */}
       <div className={styles.cartSummary}>
         <h3>Your Cart</h3>
         <ul>
           {itemSelections.map((selection) => (
-            <li key={selection.id}>
-              {selection.name} - {selection.quantity} {selection.unit} @ ${selection.cost_per_unit.toFixed(2)} each = ${(
-                selection.quantity * selection.cost_per_unit
-              ).toFixed(2)}
+            <li key={selection.id} className={styles.cartItem}>
+              <button
+                className={styles.removeButton}
+                onClick={() => handleRemoveFromCart(selection.id)}
+              >
+                X
+              </button>
+              {selection.name} - {selection.quantity} {selection.unit} @ ${selection.cost_per_unit.toFixed(2)} each = $
+              {(selection.quantity * selection.cost_per_unit).toFixed(2)}
+              <textarea
+                placeholder="Add notes for this item"
+                value={selection.notes}
+                onChange={(e) => handleNoteChange(selection.id, e.target.value)}
+                className={styles.notesInput}
+              />
             </li>
           ))}
         </ul>
         <h4>Subtotal: ${subtotal.toFixed(2)}</h4>
         {isConfirmingOrder ? (
-          <button onClick={handleSubmitOrder} className={styles.submitOrderButton}>Confirm Order</button>
+          <button onClick={handleSubmitOrder} className={styles.submitOrderButton}>
+            Confirm Order
+          </button>
         ) : (
-          <button onClick={handleSubmitOrder} className={styles.submitOrderButton}>Submit Order</button>
+          <button onClick={handleSubmitOrder} className={styles.submitOrderButton}>
+            Submit Order
+          </button>
         )}
       </div>
 
