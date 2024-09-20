@@ -8,12 +8,12 @@ const RequestOrder: React.FC = () => {
   const [itemSelections, setItemSelections] = useState<
     { id: number; name: string; quantity: number; unit: string; cost_per_unit: number; notes: string }[]
   >([]);
+  const [searchTerm, setSearchTerm] = useState(''); // Added for search functionality
   const [timeline, setTimeline] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [items, setItems] = useState<any[]>([]);
   const [subtotal, setSubtotal] = useState(0);
-  const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [isConfirmingOrder, setIsConfirmingOrder] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
   const router = useRouter();
@@ -58,6 +58,11 @@ const RequestOrder: React.FC = () => {
     setSubtotal(newSubtotal);
   }, [itemSelections]);
 
+  // Filtered items based on search
+  const filteredItems = items.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const handleAddToCart = (item: any, quantity: number) => {
     setItemSelections((prevSelections) => {
       const existingItem = prevSelections.find((selection) => selection.id === item.id);
@@ -74,7 +79,7 @@ const RequestOrder: React.FC = () => {
     });
   };
 
-  const handleQuantityChange = (itemId: number, quantity: number) => {
+  const handleQuantityChangeInCart = (itemId: number, quantity: number) => {
     setItemSelections((prevSelections) => {
       return prevSelections.map((selection) =>
         selection.id === itemId ? { ...selection, quantity: Math.max(1, quantity) } : selection
@@ -102,13 +107,25 @@ const RequestOrder: React.FC = () => {
       return;
     }
 
+    // Ensure that restaurant ID exists in the restaurants table
+    const parsedRestaurantId = parseInt(restaurantId as string, 10);
+    const { data: restaurantData, error: restaurantError } = await supabase
+      .from('restaurants')
+      .select('*')
+      .eq('id', parsedRestaurantId);
+
+    if (restaurantError || restaurantData.length === 0) {
+      setError('Invalid restaurant ID. Please try again.');
+      return;
+    }
+
     if (!isConfirmingOrder) {
       setIsConfirmingOrder(true);
       return;
     }
 
     const newOrders = itemSelections.map((selection) => ({
-      restaurant_id: parseInt(restaurantId as string, 10),
+      restaurant_id: parsedRestaurantId,
       item_id: selection.id,
       quantity: selection.quantity,
       unit: selection.unit,
@@ -150,15 +167,22 @@ const RequestOrder: React.FC = () => {
         <h1 className={styles.header}>Marketplace</h1>
       </div>
 
+      {/* Search Bar */}
+      <div className={styles.searchContainer}>
+        <input
+          type="text"
+          placeholder="Search for items..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className={styles.searchInput}
+        />
+      </div>
+
       <div className={styles.gridContainer}>
-        {items.map((item) => (
+        {filteredItems.map((item) => (
           <div
             key={item.id}
             className={styles.itemCard}
-            onClick={() => setSelectedItem(item.id)}
-            role="button"
-            tabIndex={0}
-            onKeyPress={() => setSelectedItem(item.id)}
           >
             <img src={item.image_link} alt={item.name} className={styles.itemImage} />
             <h2 className={styles.itemName}>{item.name}</h2>
@@ -170,22 +194,8 @@ const RequestOrder: React.FC = () => {
               Cut-Off: {formatCutOffTime(item.cut_off_day, item.cut_off_time)}
             </p>
 
-            <div className={styles.quantityContainer}>
-              <input
-                type="number"
-                min="1"
-                value={itemSelections.find((i) => i.id === item.id)?.quantity || 1}
-                onClick={(e) => e.stopPropagation()}
-                onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
-                className={styles.quantityInput}
-              />
-            </div>
-
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddToCart(item, parseInt(e.target.previousSibling.firstChild.value));
-              }}
+              onClick={() => handleAddToCart(item, 1)}
               className={styles.addToCartButton}
             >
               Add to Cart
@@ -207,6 +217,13 @@ const RequestOrder: React.FC = () => {
               </button>
               {selection.name} - {selection.quantity} {selection.unit} @ ${selection.cost_per_unit.toFixed(2)} each = $
               {(selection.quantity * selection.cost_per_unit).toFixed(2)}
+              <input
+                type="number"
+                min="1"
+                value={selection.quantity}
+                onChange={(e) => handleQuantityChangeInCart(selection.id, parseInt(e.target.value))}
+                className={styles.quantityInput}
+              />
               <textarea
                 placeholder="Add notes for this item"
                 value={selection.notes}
@@ -230,6 +247,9 @@ const RequestOrder: React.FC = () => {
 
       {error && <p className={styles.error}>{error}</p>}
       {success && <p className={styles.success}>{success}</p>}
+
+      {/* Extra padding for scroll */}
+      <div style={{ height: '2in' }}></div> 
     </Layout>
   );
 };

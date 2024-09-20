@@ -23,6 +23,21 @@
   flex: 1;
 }
 
+/* New styles for search input */
+.searchContainer {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.searchInput {
+  padding: 0.5rem;
+  width: 80%;
+  max-width: 500px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
 @media (max-width: 767px) {
   .headerContainer {
     flex-direction: column;
@@ -181,17 +196,18 @@
   border-radius: 5px;
   background-color: #fff;
 }
+
 .removeButton {
-  margin-right: 10px; /* Space between the X and the item details */
+  margin-right: 10px;
   padding: 0;
   background: none;
-  color: #888; /* Softer color for a cleaner look */
+  color: #888;
   border: none;
-  font-size: 0.9rem; /* Adjusted size to look balanced */
+  font-size: 0.9rem;
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .removeButton:hover {
-  color: #ff6961; /* Subtle color change on hover */
+  color: #ff6961;
 }
