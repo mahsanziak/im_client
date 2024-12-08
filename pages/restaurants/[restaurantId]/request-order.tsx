@@ -13,6 +13,7 @@ const RequestOrder: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [items, setItems] = useState<any[]>([]);
   const [subtotal, setSubtotal] = useState(0);
+  const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [isConfirmingOrder, setIsConfirmingOrder] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
@@ -75,11 +76,7 @@ const RequestOrder: React.FC = () => {
   };
 
   const handleQuantityChange = (itemId: number, quantity: number) => {
-    setItemSelections((prevSelections) => {
-      return prevSelections.map((selection) =>
-        selection.id === itemId ? { ...selection, quantity: Math.max(1, quantity) } : selection
-      );
-    });
+    setQuantities((prev) => ({ ...prev, [itemId]: Math.max(1, quantity) }));
   };
 
   const handleNoteChange = (itemId: number, note: string) => {
@@ -174,9 +171,9 @@ const RequestOrder: React.FC = () => {
               <input
                 type="number"
                 min="1"
-                value={itemSelections.find((i) => i.id === item.id)?.quantity || 1}
+                value={quantities[item.id] || 1}
                 onClick={(e) => e.stopPropagation()}
-                onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
+                onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value || '1'))}
                 className={styles.quantityInput}
               />
             </div>
@@ -184,7 +181,7 @@ const RequestOrder: React.FC = () => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleAddToCart(item, parseInt(e.target.previousSibling.firstChild.value));
+                handleAddToCart(item, quantities[item.id] || 1); // Use quantity from state
               }}
               className={styles.addToCartButton}
             >

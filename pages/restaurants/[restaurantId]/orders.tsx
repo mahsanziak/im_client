@@ -8,7 +8,7 @@ const Orders: React.FC = () => {
   const [pendingOrders, setPendingOrders] = useState<any[]>([]);
   const [pastOrders, setPastOrders] = useState<any[]>([]);
   const [reportedOrders, setReportedOrders] = useState<any[]>([]);
-  const [employeeId, setEmployeeId] = useState('');
+  const [enteredCode, setEnteredCode] = useState<{ [key: string]: string }>({});
   const [activeTab, setActiveTab] = useState('pending');
 
   const router = useRouter();
@@ -51,17 +51,23 @@ const Orders: React.FC = () => {
     fetchOrders();
   }, [restaurantId]);
 
-  const handleConfirmOrder = async (orderId: string) => {
-    const confirmedOrder = pendingOrders.find(order => order.id === orderId);
-    if (confirmedOrder) {
-      await supabase
-        .from('inventory_requests')
-        .update({ pending_status: 'confirmed' })
-        .eq('id', orderId);
+  const handleConfirmOrder = async (orderId: string, correctCode: string) => {
+    const orderCode = enteredCode[orderId];
 
-      setPastOrders([...pastOrders, { ...confirmedOrder, pending_status: 'confirmed' }]);
-      setPendingOrders(pendingOrders.filter(order => order.id !== orderId));
-      setEmployeeId('');
+    if (orderCode === correctCode) {
+      const confirmedOrder = pendingOrders.find(order => order.id === orderId);
+      if (confirmedOrder) {
+        await supabase
+          .from('inventory_requests')
+          .update({ pending_status: 'confirmed' })
+          .eq('id', orderId);
+
+        setPastOrders([...pastOrders, { ...confirmedOrder, pending_status: 'confirmed' }]);
+        setPendingOrders(pendingOrders.filter(order => order.id !== orderId));
+        setEnteredCode({ ...enteredCode, [orderId]: '' }); // Clear code input after confirming
+      }
+    } else {
+      alert('Incorrect code. Please try again.');
     }
   };
 
@@ -175,20 +181,20 @@ const Orders: React.FC = () => {
                       <p>Item: {order.items?.name || 'Unknown Item'}</p>
                       <p>Quantity: {order.quantity} {order.unit}</p>
 
-                      <label htmlFor={`employeeId-${order.id}`} className={styles.label}>
-                        Enter Employee ID to Confirm:
+                      <label htmlFor={`code-${order.id}`} className={styles.label}>
+                        Enter Code to Confirm:
                       </label>
                       <input
                         type="text"
-                        id={`employeeId-${order.id}`}
+                        id={`code-${order.id}`}
                         className={styles.input}
-                        value={employeeId}
-                        onChange={(e) => setEmployeeId(e.target.value)}
+                        value={enteredCode[order.id] || ''}
+                        onChange={(e) => setEnteredCode({ ...enteredCode, [order.id]: e.target.value })}
                       />
                       <button
                         className={styles.confirmButton}
-                        onClick={() => handleConfirmOrder(order.id)}
-                        disabled={!employeeId}
+                        onClick={() => handleConfirmOrder(order.id, order.code)}
+                        disabled={!enteredCode[order.id]}
                       >
                         Confirm Order
                       </button>
